@@ -11,14 +11,23 @@ status = cycle(["Killing Jaeler", 'Falling down holes','Enchanting weapon', 'Mis
 async def change_status():
     await client.change_presence(activity=discord.Game(next(status)))
 
+
+@client.command()
+async def change_prefix(ctx, pref):
+    """
+    changes the expected prefix for the bot, 
+    this can now be changed to ANY combination of characters. This is retarded.
+    Just don't abuse it please.
+    """
+    if 'officer' in [c.name.lower() for c in ctx.author.roles]:
+        client.command_prefix = pref
+
+
+
 @client.event
 async def on_ready():
     change_status.start()
     print('Logged in as', client.user.name)
-
-
-
-
 
 @client.command()
 async def move(ctx, _from, to ):
@@ -39,6 +48,36 @@ async def move(ctx, _from, to ):
             print(f"Moving {member} from {prev_channel} to {target_voice_chat}")
             await member.move_to(target_voice_chat)
 
+
+@client.command(aliases=["officerchat"])
+async def officer_chat_move(ctx):
+    if 'officer' in [c.name.lower() for c in ctx.author.roles]: 
+        members = []
+
+        """ Adds all members from specific channels to a list"""
+        for channel in ctx.guild.channels:
+            if channel.id == 648544127352307719: # officer text chat id
+                for m in channel.members:
+                    if m.voice is not None:
+                        members.append(m)
+
+        """ Determines the target voice channel to move all members to """
+        for channel in ctx.guild.voice_channels:
+            if channel.id == 648591145617588244: # target officer voice chat
+                target_voice_chat = channel
+                break
+            else:        
+                target_voice_chat = ctx.guild.voice_channels[0]
+
+        """ Moving all members to target channel """
+        for member in members:
+            if member not in target_voice_chat.members:
+                print(f"Moving {member} to {target_voice_chat}")
+                await member.move_to(target_voice_chat, reason="Raid time!")
+    else:
+        await ctx.send('Nice try, fool.')
+        await ctx.message.delete()
+
 @client.command(aliases=['raidtime'])
 async def raid_time(ctx):
     print('Task recieved')
@@ -48,14 +87,14 @@ async def raid_time(ctx):
 
         """ Adds all members from specific channels to a list"""
         for channel in ctx.guild.channels:
-            if channel.id == 648591575810834445:
+            if channel.id == 648591575810834445: # raid member text chat id
                 for m in channel.members:
                     if m.voice is not None:
                         members.append(m)
 
         """ Determines the target voice channel to move all members to """
         for channel in ctx.guild.voice_channels:
-            if channel.id == 648591623638220830:
+            if channel.id == 648591623638220830: # raid voice chat id
                 target_voice_chat = channel
                 break
             else:        
