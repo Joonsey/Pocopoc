@@ -21,6 +21,7 @@ async def change_prefix(ctx, pref):
     """
     if 'officer' in [c.name.lower() for c in ctx.author.roles]:
         client.command_prefix = pref
+        await ctx.reply(f'command prefix changed to {pref}')
 
 
 
