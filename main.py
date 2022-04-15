@@ -3,6 +3,12 @@ from discord.ext import commands, tasks
 from secret import TOKEN
 from itertools import cycle
 
+OFFICER_TEXT_CHAT = 648544127352307719
+OFFICER_VOICE_CHAT = 648591145617588244
+
+RAID_TEXT_CHAT = 648591575810834445
+RAID_VOICE_CHAT = 648591623638220830
+
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix='.', intents=intents)
 status = cycle(["Killing Jaeler", 'Falling down holes','Enchanting weapon', 'Missing tyrant ramp'])
@@ -57,14 +63,14 @@ async def officer_chat_move(ctx):
 
         """ Adds all members from specific channels to a list"""
         for channel in ctx.guild.channels:
-            if channel.id == 648544127352307719: # officer text chat id
+            if channel.id == OFFICER_TEXT_CHAT: # officer text chat id
                 for m in channel.members:
                     if m.voice is not None:
                         members.append(m)
 
         """ Determines the target voice channel to move all members to """
         for channel in ctx.guild.voice_channels:
-            if channel.id == 648591145617588244: # target officer voice chat
+            if channel.id == OFFICER_VOICE_CHAT: # target officer voice chat
                 target_voice_chat = channel
                 break
             else:        
@@ -88,14 +94,14 @@ async def raid_time(ctx):
 
         """ Adds all members from specific channels to a list"""
         for channel in ctx.guild.channels:
-            if channel.id == 648591575810834445: # raid member text chat id
+            if channel.id == RAID_TEXT_CHAT: # raid member text chat id
                 for m in channel.members:
                     if m.voice is not None:
                         members.append(m)
 
         """ Determines the target voice channel to move all members to """
         for channel in ctx.guild.voice_channels:
-            if channel.id == 648591623638220830: # raid voice chat id
+            if channel.id == RAID_VOICE_CHAT: # raid voice chat id
                 target_voice_chat = channel
                 break
             else:        
