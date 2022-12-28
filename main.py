@@ -6,7 +6,7 @@ from itertools import cycle
 from settings import *
 
 #ADAPTERS
-mc_api = Minecraftapi_adapter("http://helheim.online")
+mc_api = Minecraftapi_adapter(MINECRAFT_API_PATH)
 
 
 #DISCORD INITIALIZATION
