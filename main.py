@@ -1,14 +1,15 @@
 import random, discord, asyncio, os
+from adapters.minecraft import Minecraftapi_adapter
 from discord.ext import commands, tasks
 from secret import TOKEN
 from itertools import cycle
+from settings import *
 
-OFFICER_TEXT_CHAT = 648544127352307719
-OFFICER_VOICE_CHAT = 648591145617588244
+#ADAPTERS
+mc_api = Minecraftapi_adapter("http://helheim.online")
 
-RAID_TEXT_CHAT = 648591575810834445
-RAID_VOICE_CHAT = 648591623638220830
 
+#DISCORD INITIALIZATION
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix='.', intents=intents)
 status = cycle(["Killing Jaeler", 'Falling down holes','Enchanting weapon', 'Missing tyrant ramp'])
@@ -33,6 +34,7 @@ async def change_prefix(ctx, pref):
 
 @client.event
 async def on_ready():
+    await client.add_cog(Minecraft(client))
     change_status.start()
     print('Logged in as', client.user.name)
 
@@ -104,7 +106,7 @@ async def raid_time(ctx):
             if channel.id == RAID_VOICE_CHAT: # raid voice chat id
                 target_voice_chat = channel
                 break
-            else:        
+            else:
                 target_voice_chat = ctx.guild.voice_channels[0]
 
         """ Moving all members to target channel """
@@ -116,6 +118,118 @@ async def raid_time(ctx):
         await ctx.send('Nice try, fool.')
         await ctx.message.delete()
 
-        
+class Minecraft(commands.Cog):
+    def __init__(self, bot) -> None:
+        self.bot = bot
+
+    @commands.command()
+    async def biggest_killer(self, ctx, particular_entity:str = ""):
+        miners = {}
+        response = ""
+        data = mc_api.get_stats()
+        if not data:
+            return
+
+        if not particular_entity:
+            for player in data.keys():
+                sum_of_mining = 0
+                try:
+                    all_things_mined = data[player]['stats']['minecraft:killed']
+                    for thing in all_things_mined.keys():
+                        sum_of_mining += all_things_mined[thing]
+                except:
+                    continue
+                miners[player] = sum_of_mining
+
+            sorted_miners = sorted(miners.items(), key = lambda x: x[1], reverse=True)
+            n = 0
+            for player in sorted_miners:
+                n+=1
+                response += f"#{n} {player[0]} with {player[1]} total kills\n"
+
+        else:
+            for player in data.keys():
+                sum_of_mining = 0
+                try:
+                    all_things_mined = data[player]['stats']['minecraft:killed']
+                    for thing in all_things_mined.keys():
+                        if particular_block in thing:
+                            sum_of_mining += all_things_mined[thing]
+                except:
+                    continue
+                miners[player] = sum_of_mining
+
+            sorted_miners = sorted(miners.items(), key = lambda x: x[1], reverse=True)
+            n = 0
+            for player in sorted_miners:
+                n+=1
+                response += f"#{n} {player[0]} killed {particular_entity} {player[1]} times\n"
+
+        await ctx.send(response)
+
+    @commands.command()
+    async def biggest_miner(self, ctx, particular_block:str = ""):
+        miners = {}
+        response = ""
+        data = mc_api.get_stats()
+        if not data:
+            return
+
+        if not particular_block:
+            for player in data.keys():
+                sum_of_mining = 0
+                try:
+                    all_things_mined = data[player]['stats']['minecraft:mined']
+                    for thing in all_things_mined.keys():
+                        sum_of_mining += all_things_mined[thing]
+                except:
+                    continue
+                miners[player] = sum_of_mining
+
+            sorted_miners = sorted(miners.items(), key = lambda x: x[1], reverse=True)
+            n = 0
+            for player in sorted_miners:
+                n+=1
+                response += f"#{n} {player[0]} with {player[1]} total blocks mined\n"
+
+        else:
+            for player in data.keys():
+                sum_of_mining = 0
+                try:
+                    all_things_mined = data[player]['stats']['minecraft:mined']
+                    for thing in all_things_mined.keys():
+                        if particular_block in thing:
+                            sum_of_mining += all_things_mined[thing]
+                except:
+                    continue
+                miners[player] = sum_of_mining
+
+            sorted_miners = sorted(miners.items(), key = lambda x: x[1], reverse=True)
+            n = 0
+            for player in sorted_miners:
+                n+=1
+                response += f"#{n} {player[0]} with {player[1]} total blocks of '{particular_block}' mined\n"
+
+        await ctx.send(response)
+
+    @commands.command()
+    async def stats(self, ctx, player=""):
+        response = ""
+        if not player:
+            response = "please provide a player name."
+        else:
+            stats = mc_api.get_stats(player)
+            if not stats:
+                response = "didn't find a player with that name."
+            else:
+                stats = stats['stats']
+                for category in stats.keys():
+                    response += f"**{category.replace('minecraft:', '')}:**\n"
+                    for key in stats[category].keys():
+                        value = stats[category][key]
+                        response += f"{key.replace('minecraft:', '').replace('_', ' ')}: {value}\n"
+
+        await ctx.send(response)
+
 if "__main__" == __name__:
     client.run(TOKEN)
