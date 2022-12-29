@@ -118,6 +118,10 @@ async def raid_time(ctx):
         await ctx.send('Nice try, fool.')
         await ctx.message.delete()
 
+class WCL(commands.Cog):
+    def __init__(self, bot) -> None:
+        self.bot = bot
+
 class Minecraft(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
