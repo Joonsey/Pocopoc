@@ -42,7 +42,7 @@ async def on_ready():
 async def move(ctx, _from, to ):
     if 'officer' in [c.name.lower() for c in ctx.author.roles]:
         members = []
-
+        prev_channel, target_voice_chat = ""
         for channel in ctx.guild.voice_channels:
             if _from in channel.name.lower():
                 prev_channel = _from
@@ -52,16 +52,18 @@ async def move(ctx, _from, to ):
         for channel in ctx.guild.voice_channels:
             if to in channel.name.lower():
                 target_voice_chat = channel
-        
+
         for member in members:
             print(f"Moving {member} from {prev_channel} to {target_voice_chat}")
             await member.move_to(target_voice_chat)
 
 
+
 @client.command(aliases=["officerchat"])
 async def officer_chat_move(ctx):
-    if 'officer' in [c.name.lower() for c in ctx.author.roles]: 
+    if 'officer' in [c.name.lower() for c in ctx.author.roles]:
         members = []
+        target_voice_chat = 0
 
         """ Adds all members from specific channels to a list"""
         for channel in ctx.guild.channels:
@@ -75,7 +77,7 @@ async def officer_chat_move(ctx):
             if channel.id == OFFICER_VOICE_CHAT: # target officer voice chat
                 target_voice_chat = channel
                 break
-            else:        
+            else:
                 target_voice_chat = ctx.guild.voice_channels[0]
 
         """ Moving all members to target channel """
@@ -89,9 +91,10 @@ async def officer_chat_move(ctx):
 
 @client.command(aliases=['raidtime'])
 async def raid_time(ctx):
+    target_voice_chat = ""
     print('Task recieved')
     """ An officer can call this command to move all active voice raid members to raid chat """
-    if 'officer' in [c.name.lower() for c in ctx.author.roles]: 
+    if 'officer' in [c.name.lower() for c in ctx.author.roles]:
         members = []
 
         """ Adds all members from specific channels to a list"""
@@ -157,7 +160,7 @@ class Minecraft(commands.Cog):
                 try:
                     all_things_mined = data[player]['stats']['minecraft:killed']
                     for thing in all_things_mined.keys():
-                        if particular_block in thing:
+                        if particular_entity in thing:
                             sum_of_mining += all_things_mined[thing]
                 except:
                     continue
