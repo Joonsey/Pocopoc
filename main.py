@@ -1,5 +1,5 @@
 import random, discord, asyncio, os
-from adapters.minecraft import Minecraftapi_adapter
+from adapters.minecraft import Minecraftapi_adapter, Stats, Minecraft_Embed
 from discord.ext import commands, tasks
 from secret import TOKEN
 from itertools import cycle
@@ -237,6 +237,47 @@ class Minecraft(commands.Cog):
                         response += f"{key.replace('minecraft:', '').replace('_', ' ')}: {value}\n"
 
         await ctx.send(response)
+
+    @commands.command()
+    async def summary(self, ctx, player=""):
+        mcstats = Stats()
+        if not player:
+            await ctx.send("please provide a player.")
+            return
+
+        stats = mc_api.get_stats(player)
+        if not stats:
+            await ctx.send("player not found")
+            return
+        stats = stats['stats']
+        for keys in stats.keys():
+            if keys == 'minecraft:mined':
+                mcstats.mined = stats[keys]
+            if keys == 'minecraft:broken':
+                mcstats.broken = stats[keys]
+            if keys == 'minecraft:crafted':
+                mcstats.crafted = stats[keys]
+            if keys == 'minecraft:killed':
+                mcstats.killed = stats[keys]
+            if keys == 'minecraft:killed_by':
+                mcstats.killed_by = stats[keys]
+            if keys == 'minecraft:dropped':
+                mcstats.dropped = stats[keys]
+            if keys == 'minecraft:picked_up':
+                mcstats.picked_up = stats[keys]
+            if keys == 'minecraft:used':
+                mcstats.used = stats[keys]
+            if keys == 'minecraft:custom':
+                mcstats.custom = stats[keys]
+
+        embed = Minecraft_Embed()
+        #embed.set_author(name=f"{player}")
+        embed.title = f"summary for {player.lower().capitalize()}"
+        embed.add_highest_mined_field(mcstats.highest_mined())
+        embed.add_most_picked_up_field(mcstats.most_picked_up())
+        embed.add_most_crafted_field(mcstats.most_crafted())
+        embed.add_most_killed_field(mcstats.most_killed())
+        await ctx.send(embed=embed)
 
 if "__main__" == __name__:
     client.run(TOKEN)
