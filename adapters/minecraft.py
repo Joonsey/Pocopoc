@@ -98,14 +98,16 @@ class Minecraftapi_adapter():
         self.base_url = url
 
     def get_advancements(self, player: str=""):
-        response = re.get(os.path.join(self.base_url, "advancements",player)) if player else re.get(os.path.join(self.base_url, "advancements"))
+        #response = re.get(os.path.join(self.base_url, "advancements",player)) if player else re.get(os.path.join(self.base_url, "advancements"))
+        response = f"{self.base_url}/stats/{player}" if player else f"{self.base_url}/stats"
         try:
             return response.json()
         except:
             return False
 
     def get_stats(self, player: str=""):
-        response = re.get(os.path.join(self.base_url, "stats",player)) if player else re.get(os.path.join(self.base_url, "stats"))
+        #response = re.get(os.path.join(self.base_url, "stats",player)) if player else re.get(os.path.join(self.base_url, "stats"))
+        response = re.get(f"{self.base_url}/stats/{player}" if player else f"{self.base_url}/stats")
         try:
             return response.json()
         except:

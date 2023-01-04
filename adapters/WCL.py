@@ -1,4 +1,4 @@
-import request, os
+import requests, os
 
 class Minecraftapi_adapter():
     def __init__(self, url: str, client_id: str, client_secret: str) -> None:
