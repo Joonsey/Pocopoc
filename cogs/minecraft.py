@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 import discord
-from adapters.minecraft import Minecraft_Embed, Stats
+from adapters.minecraft import Minecraft_Embed, Stats, sort
 
 
 class Minecraft(commands.Cog):
@@ -166,7 +166,7 @@ class Minecraft(commands.Cog):
             return None
         
         data = self.mc_api.get_stats(player)
-        if data == False:
+        if not data:
             await ctx.send(f"couldn't find player with name '{player}'")
             return None
         stats = data["stats"]
@@ -177,4 +177,27 @@ class Minecraft(commands.Cog):
             return None
 
         response = f"{player}: {deathcount} deaths" 
+        await ctx.send(response)
+
+    @commands.command()
+    async def most_deaths(self, ctx):
+        response: str = ""
+        players = []
+
+        data = self.mc_api.get_stats()
+        for player in data.keys():
+            stats = data[player]['stats']
+            try:
+                deaths = stats["minecraft:custom"]["minecraft:deaths"]
+            except KeyError:
+                deaths = 0
+            
+            players.append((player, deaths))
+
+        player_sorted: list[tuple] = sorted(players, key = lambda x: x[1], reverse=True)
+
+        for n, player in enumerate(player_sorted):
+            player_name, deaths = player
+            response += f"#{n} {player_name}: {deaths} deaths \n"
+    
         await ctx.send(response)
