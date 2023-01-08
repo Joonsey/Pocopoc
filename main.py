@@ -1,7 +1,8 @@
 import random, discord, asyncio, os
+from adapters.WCL import WCL_adapter
 from adapters.minecraft import Minecraftapi_adapter, Stats, Minecraft_Embed
 from discord.ext import commands, tasks
-from secret import TOKEN
+from secret import TOKEN, CLIENT_ID, CLIENT_SECRET
 from itertools import cycle
 from settings import *
 
@@ -12,7 +13,7 @@ from cogs.WCL import WCL
 
 #ADAPTERS
 mc_api = Minecraftapi_adapter(MINECRAFT_API_PATH)
-
+wcl_adapter = WCL_adapter(CLIENT_ID, CLIENT_SECRET)
 
 #DISCORD INITIALIZATION
 intents = discord.Intents().all()
@@ -27,7 +28,7 @@ async def change_status():
 @client.command()
 async def change_prefix(ctx, pref):
     """
-    changes the expected prefix for the bot, 
+    changes the expected prefix for the bot,
     this can now be changed to ANY combination of characters. This is retarded.
     Just don't abuse it please.
     """
@@ -39,7 +40,7 @@ async def change_prefix(ctx, pref):
 @client.event
 async def on_ready():
     await client.add_cog(Minecraft(client, mc_api))
-    await client.add_cog(WCL(client))
+    await client.add_cog(WCL(client, wcl_adapter))
     change_status.start()
     print('Logged in as', client.user.name)
 
