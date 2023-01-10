@@ -1,4 +1,5 @@
 from discord.ext import commands
+from enum import Enum
 import discord
 
 class WCL(commands.Cog):
@@ -14,13 +15,23 @@ class WCL(commands.Cog):
 
     @commands.command()
     async def report(self, ctx, code, person: str):
+
+        difficulty: list[str]= [
+            "",
+            "",
+            "lfr",
+            "normal",
+            "heroic",
+            "mythic",
+        ]
+
         report = self.adapter.get_report(code)
         response = ""
 
         for fight in report.fights:
             for character in fight.rankings:
                 if (character.name.lower() == person.lower()) and fight.kill:
-                    response += str(character.rankPercent) + f" on {fight.name}\n"
+                    response += str(character.rankPercent) + f" on {fight.name} {difficulty[fight.difficulty].capitalize()}\n"
 
         if not response:
             response = "could not find that player."

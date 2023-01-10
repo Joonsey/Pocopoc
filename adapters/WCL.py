@@ -18,6 +18,7 @@ class Ranking():
 @dataclass
 class Fight():
     id: int
+    difficulty: int
     name : str
     startTime : float
     endTime : float
@@ -127,6 +128,7 @@ class WCL_adapter():
                     startTime
                     fights(killType:Encounters){
                         id
+                        difficulty
                         name
                         startTime
                         endTime
@@ -148,6 +150,7 @@ class WCL_adapter():
         for fight in fightData :
             fights.append(Fight(
                 fight['id'],
+                fight['difficulty'],
                 fight['name'],
                 fight['startTime'],
                 fight['endTime'],
