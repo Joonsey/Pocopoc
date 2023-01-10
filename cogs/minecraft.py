@@ -198,6 +198,6 @@ class Minecraft(commands.Cog):
 
         for n, player in enumerate(player_sorted):
             player_name, deaths = player
-            response += f"#{n} {player_name}: {deaths} deaths \n"
+            response += f"#{n+1} {player_name}: {deaths} deaths \n"
     
         await ctx.send(response)
