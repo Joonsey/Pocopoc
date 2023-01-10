@@ -2,7 +2,7 @@ import random, discord, asyncio, os
 from adapters.WCL import WCL_adapter
 from adapters.minecraft import Minecraftapi_adapter, Stats, Minecraft_Embed
 from discord.ext import commands, tasks
-from secret import TOKEN, CLIENT_ID, CLIENT_SECRET
+from secret import TOKEN, WCL_CLIENT_ID, WCL_CLIENT_SECRET
 from itertools import cycle
 from settings import *
 
@@ -13,7 +13,7 @@ from cogs.WCL import WCL
 
 #ADAPTERS
 mc_api = Minecraftapi_adapter(MINECRAFT_API_PATH)
-wcl_adapter = WCL_adapter(CLIENT_ID, CLIENT_SECRET)
+wcl_adapter = WCL_adapter(WCL_CLIENT_ID, WCL_CLIENT_SECRET)
 
 #DISCORD INITIALIZATION
 intents = discord.Intents().all()

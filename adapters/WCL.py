@@ -1,8 +1,22 @@
 import requests, os, json
 from dataclasses import dataclass
 
+
 @dataclass
-class Fight(object):
+class Ranking():
+    role : str
+    name : str
+    spec : str
+    amount : float
+    bracketData : int
+    rank : str
+    best : str
+    totalParses : int
+    bracketPercent : int
+    rankPercent : int
+
+@dataclass
+class Fight():
     id: int
     name : str
     startTime : float
@@ -10,12 +24,14 @@ class Fight(object):
     fightPercentage : float
     lastPhase : int
     size : int
+    kill : int
+    rankings : list[Ranking]
 
     def __str__(self):
         return f"fighting {self.name}, ending at {self.fightPercentage} with {self.size} people"
 
 @dataclass
-class Report(object):
+class Report():
     startTime : float
     fights : list[Fight]
     
@@ -69,10 +85,45 @@ class WCL_adapter():
         return {"Authorization" : f"Bearer {self.token}"}
 
 
-    def get_report(self, code: str) -> Report:
+    def get_guildrank(self, id, zoneId=14030):
+        query = """query($id:Int, $zoneId:Int) { 
+            guildData {
+                guild(id:$id) {
+                    zoneRanking(zoneId:$zoneId) {
+                        progress(size:20) {
+                            worldRank
+                            {
+                                number
+                                percentile
+                                color
+                            }
+                            regionRank
+                            {
+                                number
+                                percentile
+                                color
+                            }
+                            serverRank
+                            {
+                                number
+                                percentile
+                                color
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        """
+        response = self.get_data(query, id = int(id), zoneId = zoneId)
+        return response
+
+
+    def get_report(self, code: str, byBracket: bool = False) -> Report:
         query = """query($code:String) { 
             reportData{
                 report(code:$code){
+                    rankings
                     startTime
                     fights(killType:Encounters){
                         id
@@ -82,14 +133,17 @@ class WCL_adapter():
                         fightPercentage
                         lastPhase
                         size
+                        kill
                     }
                 }
             }
         }
         """
-        response = self.get_data(query, code = code)
+        response = self.get_data(query, code = code, byBracket = byBracket)
         data = response["data"]["reportData"]
         fightData = response["data"]["reportData"]['report']['fights']
+        rankingData = data["report"]["rankings"]["data"]
+
         fights = []
         for fight in fightData :
             fights.append(Fight(
@@ -99,8 +153,30 @@ class WCL_adapter():
                 fight['endTime'],
                 fight['fightPercentage'],
                 fight['lastPhase'],
-                fight['size']
+                fight['size'],
+                fight['kill'],
+                rankings = []
             ))
-        report = Report(data['report']['startTime'], fights)
-        
-        return report
+
+
+        for ranking in rankingData:
+            new_rankings = []
+            for role in ranking['roles']:
+                for character in ranking['roles'][role]["characters"]:
+                    new_rankings.append(Ranking(
+                        role,
+                        character['name'],
+                        character['spec'],
+                        character['amount'],
+                        character['bracketData'],
+                        character['rank'],
+                        character['best'],
+                        character['totalParses'],
+                        character['bracketPercent'],
+                        character['rankPercent']
+                    ))
+            fight_id = ranking['fightID']
+            fight = next(fight for fight in fights if fight.id == fight_id)
+            fight.rankings = new_rankings
+
+        return Report(data['report']['startTime'], fights)
