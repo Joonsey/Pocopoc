@@ -16,6 +16,16 @@ class Ranking():
     rankPercent : int
 
 @dataclass
+class Events():
+    death: int
+
+@dataclass
+class Death():
+    name: str
+    id: int
+    type: str
+
+@dataclass
 class Fight():
     id: int
     difficulty: int
@@ -27,6 +37,7 @@ class Fight():
     size : int
     kill : int
     rankings : list[Ranking]
+    deaths : list[Death]
 
     def __str__(self):
         return f"fighting {self.name}, ending at {self.fightPercentage} with {self.size} people"
@@ -53,7 +64,7 @@ class WCL_adapter():
         with requests.session() as session:
             session.headers = self.retrieve_headers()
             response = session.get(api_url, json=data)
-            return response.json()
+        return response.json()
 
     def get_token(self, client_id, client_secret):
         """recieves token from warcraftlogs"""
@@ -119,6 +130,31 @@ class WCL_adapter():
         response = self.get_data(query, id = int(id), zoneId = zoneId)
         return response
 
+    def get_graph_for_fight(self, code, id):
+        query = """query($code:String, $id:[Int]) { 
+            reportData{
+                report(code:$code){
+                    graph(fightIDs:$id, dataType: Deaths) 
+                }
+            }
+        }
+        """
+        response = self.get_data(query, code = code, id = [ id ])
+        return response
+
+    def get_events_for_fight(self, code, id):
+        query = """query($code:String, $id:[Int]) { 
+            reportData{
+                report(code:$code){
+                    events(fightIDs:$id) {
+                        data
+                    }
+                }
+            }
+        }
+        """
+        response = self.get_data(query, code = code, id = [id])
+        return response
 
     def get_report(self, code: str, byBracket: bool = False) -> Report:
         query = """query($code:String) { 
@@ -141,6 +177,7 @@ class WCL_adapter():
             }
         }
         """
+
         response = self.get_data(query, code = code, byBracket = byBracket)
         data = response["data"]["reportData"]
         fightData = response["data"]["reportData"]['report']['fights']
@@ -148,6 +185,15 @@ class WCL_adapter():
 
         fights = []
         for fight in fightData :
+            deaths = []
+            graph = self.get_graph_for_fight(code, fight['id'])["data"]["reportData"]["report"]["graph"]["data"]["series"]
+            for occurence in graph:
+                deaths.append(Death(
+                    occurence["name"],
+                    occurence["id"],
+                    occurence["type"]
+                    ))
+
             fights.append(Fight(
                 fight['id'],
                 fight['difficulty'],
@@ -158,7 +204,8 @@ class WCL_adapter():
                 fight['lastPhase'],
                 fight['size'],
                 fight['kill'],
-                rankings = []
+                rankings = [],
+                deaths = deaths
             ))
 
 
@@ -183,3 +230,27 @@ class WCL_adapter():
             fight.rankings = new_rankings
 
         return Report(data['report']['startTime'], fights)
+
+    def get_all_guild_reportcodes(self, guildId):
+        query = """query($guildId:Int) { 
+            guildData {
+                guild(id:$guildId) {
+                    attendance
+                    {
+                        data
+                        {
+                            code
+                        }
+                    }
+                }
+            }
+        }
+        """
+        response = self.get_data(query, guildId = guildId)
+        guild = response["data"]["guildData"]["guild"]["attendance"]["data"]
+        return [x["code"] for x in guild]
+
+
+    def get_all_guild_reports(self, guildId):
+        codes: list[str] = self.get_all_guild_reportcodes(int(guildId))
+        return [self.get_report(code) for code in codes]

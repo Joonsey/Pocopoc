@@ -38,3 +38,23 @@ class WCL(commands.Cog):
 
         await ctx.send(response)
 
+
+    @commands.command()
+    async def thing(self, ctx, guildId: str):
+        #codes: list[str] = self.adapter.get_all_guild_reportcodes(int(guildId))
+        #reports = [self.adapter.get_report(code) for code in codes]
+        reports = self.adapter.get_all_guild_reports(guildId)
+        print(reports[0].deaths)
+        
+    @commands.command()
+    async def deathers(self, ctx, code, person: str = ""):
+        response=""
+        report = self.adapter.get_report(code)
+
+        for fight in report.fights:
+            if not fight.kill:
+                continue
+            for deaths in fight.deaths:
+                response += f"{deaths.name} died on {fight.name}\n"
+
+        await ctx.send(response)
