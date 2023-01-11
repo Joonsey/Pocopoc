@@ -40,7 +40,7 @@ async def change_prefix(ctx, pref):
 @client.event
 async def on_ready():
     await client.add_cog(Minecraft(client, mc_api))
-    await client.add_cog(WCL(client, wcl_adapter))
+    await client.add_cog(WCL(client, wcl_adapter, GUILD_ID))
     change_status.start()
     print('Logged in as', client.user.name)
 

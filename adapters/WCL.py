@@ -1,7 +1,6 @@
 import requests, os, json
 from dataclasses import dataclass
 
-
 @dataclass
 class Ranking():
     role : str
@@ -46,13 +45,14 @@ class Fight():
 class Report():
     startTime : float
     fights : list[Fight]
-    
+
     def __str__(self):
         return "\n".join(str(x) for x in self.fights)
 
 token_url = "https://www.warcraftlogs.com/oauth/token"
 api_url = "https://www.warcraftlogs.com/api/v2/client"
 private_api_url = "https://www.warcraftlogs.com/api/v2/user"
+
 class WCL_adapter():
     def __init__(self, client_id: str, client_secret: str) -> None:
         self.token_url = token_url
@@ -78,7 +78,7 @@ class WCL_adapter():
         """stores token to local file"""
         try:
             with open(".credentials.json", "w+", encoding = "utf-8") as f:
-                json.dump(self.resposne.json(), f)
+                json.dump(self.response.json(), f)
         except OSError as e:
             print(e)
             return None
@@ -95,7 +95,6 @@ class WCL_adapter():
 
     def retrieve_headers(self):
         return {"Authorization" : f"Bearer {self.token}"}
-
 
     def get_guildrank(self, id, zoneId=14030):
         query = """query($id:Int, $zoneId:Int) { 
@@ -130,20 +129,20 @@ class WCL_adapter():
         response = self.get_data(query, id = int(id), zoneId = zoneId)
         return response
 
-    def get_graph_for_fight(self, code, id):
-        query = """query($code:String, $id:[Int]) { 
+    def get_graph_for_fight(self, code, id, dataType: str):
+        query = """query($code:String, $id:[Int], $dataType:String) {
             reportData{
                 report(code:$code){
-                    graph(fightIDs:$id, dataType: Deaths) 
+                    graph(fightIDs:$id, dataType: $dataType)
                 }
             }
         }
         """
-        response = self.get_data(query, code = code, id = [ id ])
+        response = self.get_data(query, code = code, id = [ id ], dataType = dataType)
         return response
 
     def get_events_for_fight(self, code, id):
-        query = """query($code:String, $id:[Int]) { 
+        query = """query($code:String, $id:[Int]) {
             reportData{
                 report(code:$code){
                     events(fightIDs:$id) {
@@ -186,7 +185,11 @@ class WCL_adapter():
         fights = []
         for fight in fightData :
             deaths = []
-            graph = self.get_graph_for_fight(code, fight['id'])["data"]["reportData"]["report"]["graph"]["data"]["series"]
+            graph = self.get_graph_for_fight(
+                code,
+                fight['id'],
+                "Deaths" #TODO make this an actual enum
+            )["data"]["reportData"]["report"]["graph"]["data"]["series"]
             for occurence in graph:
                 deaths.append(Death(
                     occurence["name"],
@@ -249,7 +252,6 @@ class WCL_adapter():
         response = self.get_data(query, guildId = guildId)
         guild = response["data"]["guildData"]["guild"]["attendance"]["data"]
         return [x["code"] for x in guild]
-
 
     def get_all_guild_reports(self, guildId):
         codes: list[str] = self.get_all_guild_reportcodes(int(guildId))
