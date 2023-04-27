@@ -1,18 +1,15 @@
 import random, discord, asyncio, os
 from adapters.WCL import WCL_adapter
-from adapters.minecraft import Minecraftapi_adapter, Stats, Minecraft_Embed
 from discord.ext import commands, tasks
 from secret import TOKEN, WCL_CLIENT_ID, WCL_CLIENT_SECRET
 from itertools import cycle
 from settings import *
 
 #IMPORT COGS
-from cogs.minecraft import Minecraft
-from cogs.WCL import WCL
+from cogs.jarvis import Jarvis
 
 
 #ADAPTERS
-mc_api = Minecraftapi_adapter(MINECRAFT_API_PATH)
 wcl_adapter = WCL_adapter(WCL_CLIENT_ID, WCL_CLIENT_SECRET)
 
 #DISCORD INITIALIZATION
@@ -39,8 +36,9 @@ async def change_prefix(ctx, pref):
 
 @client.event
 async def on_ready():
-    await client.add_cog(Minecraft(client, mc_api))
-    await client.add_cog(WCL(client, wcl_adapter, GUILD_ID))
+    #await client.add_cog(Minecraft(client, mc_api))
+    #await client.add_cog(WCL(client, wcl_adapter, GUILD_ID))
+    client.add_cog(Jarvis(client))
     change_status.start()
     print('Logged in as', client.user.name)
 
