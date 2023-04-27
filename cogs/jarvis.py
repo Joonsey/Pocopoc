@@ -5,21 +5,18 @@ import asyncio
 import io
 from pydub import AudioSegment
 from pydub.utils import mediainfo
-import phind
+import openai
+from secret import OPENAI_TOKEN, OPENAI_ORG_ID 
+openai.organization = OPENAI_ORG_ID 
+openai.api_key = OPENAI_TOKEN
 
-phind.cf_clearance = "cqKZtTPj2A.LOcGihQpWjSmlRdgL2ISgu3aegzegurM-1682576726-0-160"
-phind.user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"
 
 def search_query(prompt: str):
-    result = phind.Completion.create(
-        model  = 'gpt-4',
-        prompt = prompt,
-        results     = phind.Search.create(prompt, actualSearch = True), # create search (set actualSearch to False to disable internet)
-        creative    = False,
-        detailed    = False,
-        codeContext = '') # up to 3000 chars of code
+    print("asking gpt: ", prompt)
+    result = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{'role': 'system', 'content' : prompt}])
 
-    return result.completion.choices[0].text
+    print("gpt responded: ", result)
+    return result.choices[0].message.content
 
 async def finished_callback(sink: discord.sinks.MP4Sink, channel: discord.TextChannel, author : discord.Member,*args):
     recorded_users = [f"<@{user_id}>" for user_id, audio in sink.audio_data.items()]
@@ -35,7 +32,7 @@ async def finished_callback(sink: discord.sinks.MP4Sink, channel: discord.TextCh
 
     await sink.vc.disconnect()
     await channel.send(
-        f"Finished! \n{search_query(transcript)}\n@{author.display_name}."
+        f"Finished! \n{search_query(transcript)}\n@{author}."
     )
 
 class Jarvis(commands.Cog):
