@@ -7,8 +7,8 @@ from re           import findall
 
 from curl_cffi.requests import post
 
-cf_clearance = 'idbWw1Q_HDgut7qkOOaSA1nCv80sFUmJ1oRSOLQiK0Y-1682575710-0-160'
-user_agent   = 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36'
+cf_clearance = ''
+user_agent   = ''
 
 class PhindResponse:
     

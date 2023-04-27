@@ -7,9 +7,10 @@ from pydub import AudioSegment
 from pydub.utils import mediainfo
 import phind
 
+phind.cf_clearance = "cqKZtTPj2A.LOcGihQpWjSmlRdgL2ISgu3aegzegurM-1682576726-0-160"
+phind.user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"
 
 def search_query(prompt: str):
-    print("sending request to phind api...")
     result = phind.Completion.create(
         model  = 'gpt-4',
         prompt = prompt,
