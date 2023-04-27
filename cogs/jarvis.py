@@ -5,7 +5,20 @@ import asyncio
 import io
 from pydub import AudioSegment
 from pydub.utils import mediainfo
+import phind
 
+
+def search_query(prompt: str):
+    print("sending request to phind api...")
+    result = phind.Completion.create(
+        model  = 'gpt-4',
+        prompt = prompt,
+        results     = phind.Search.create(prompt, actualSearch = True), # create search (set actualSearch to False to disable internet)
+        creative    = False,
+        detailed    = False,
+        codeContext = '') # up to 3000 chars of code
+
+    return result.completion.choices[0].text
 
 async def finished_callback(sink: discord.sinks.MP4Sink, channel: discord.TextChannel, author : discord.Member,*args):
     recorded_users = [f"<@{user_id}>" for user_id, audio in sink.audio_data.items()]
@@ -21,7 +34,7 @@ async def finished_callback(sink: discord.sinks.MP4Sink, channel: discord.TextCh
 
     await sink.vc.disconnect()
     await channel.send(
-        f"Finished! \n{transcript}\n {', '.join(recorded_users)}."
+        f"Finished! \n{search_query(transcript)}\n@{author.display_name}."
     )
 
 class Jarvis(commands.Cog):
