@@ -6,6 +6,7 @@ __pycache__/
 # Secrets
 secret.py
 run-pocopoc.sh
+*.wav
 
 # C extensions
 *.so
