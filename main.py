@@ -8,7 +8,6 @@ from settings import *
 #IMPORT COGS
 from cogs.jarvis import Jarvis
 
-
 #ADAPTERS
 wcl_adapter = WCL_adapter(WCL_CLIENT_ID, WCL_CLIENT_SECRET)
 
@@ -42,6 +41,26 @@ async def on_ready():
     change_status.start()
     print('Logged in as', client.user.name)
 
+@client.command()
+async def loot(ctx):
+    if 'loot council' or 'officer' in [c.name.lower() for c in ctx.author.roles]:
+        members = []
+        for channel in ctx.guild.voice_channels:
+            for member in channel.members:
+                if 'loot council' in [c.name.lower()for c in member.roles]:
+                    members.append(member)
+
+        for member in members:
+            member.move_to(LOOT_VC_ID)
+    else:
+        await ctx.send('loot banned.')
+
+@client.command()
+async def unloot(ctx):
+    for channel in ctx.guild.voice_channels:
+        if ctx.guild.voice_channels.id == LOOT_VC_ID:
+            for member in channel.members:
+                member.move_to(RAID_VOICE_CHAT)
 
 @client.command()
 async def move(ctx, _from, to ):
